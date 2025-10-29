@@ -1,0 +1,34 @@
+﻿﻿@using Microsoft.EntityFrameworkCore
+@using IPTV.data
+@inject IDbContextFactory<IptvDataContext> IptvContextFactory;
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Buttons
+@page "/Settings"
+
+<SfGrid DataSource="@GridData" @ref="Grid" Toolbar="@(new List<string>() { "Add", "Edit", "Delete", "Cancel", "Update" })">
+    <GridEditSettings AllowAdding="true" AllowEditing="true" AllowDeleting="true"></GridEditSettings>
+    <GridSelectionSettings Type="Syncfusion.Blazor.Grids.SelectionType.Single"></GridSelectionSettings>
+    <GridEvents RowSelected="GetSelectedRecords" OnActionComplete="ActionComplete"  TValue="Setting"></GridEvents>
+    <GridColumns>
+        <GridColumn Field=@nameof(Setting.ID) HeaderText="ID" IsPrimaryKey="true" Width="60"></GridColumn>
+        <GridColumn Field=@nameof(Setting.name) HeaderText="Setting Name" Width="350" AllowEditing=false></GridColumn>
+        <GridColumn Field=@nameof(Setting.value) HeaderText=" Value" EditType="EditType.DefaultEdit" Width="auto"></GridColumn>
+    </GridColumns>
+</SfGrid>
+
+<style>
+
+	.e-rowcell {
+        font: 1.0rem "Helvetica", serif;
+		background: AliceBlue;
+	}
+
+    e-altrow{
+        background: blanchedalmond;
+    }
+
+    .e-grid .e-rowcell.e-selectionbackground {
+        font: 1.0rem "Helvetica", serif;
+        background-color: aquamarine;
+    }
+</style>

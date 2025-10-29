@@ -1,0 +1,107 @@
+﻿@using Microsoft.EntityFrameworkCore
+@using IPTV.data
+
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Layouts
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.Notifications
+@using Syncfusion.Blazor.Popups
+@using TooltipPosition = Syncfusion.Blazor.Popups.Position
+@inject IDbContextFactory<IptvDataContext> IptvContextFactory;
+@page "/Utilities"
+
+
+<PageTitle>Utilites</PageTitle>
+
+<br />
+<SfButton CssClass="e-success" @onclick="ResetXMLChannelsMap">Reset XMLChannels_Map table</SfButton>
+<div class="divider" />
+<br />
+<SfButton CssClass="e-success" @onclick="ResetXMLChannels">Reset XMLChannels table</SfButton>
+<div class="divider" />
+<br />
+<SfButton CssClass="e-success" @onclick="RemoveOldPortalData">Remove inactive portal data</SfButton>
+<div class="divider" />
+<br />
+<SfButton CssClass="e-warning" @onclick="ResetMovies">Reset movies for an update</SfButton>
+<div class="divider" />
+<br />
+<SfButton CssClass="e-warning" @onclick="ResetSeries">Reset series for an update</SfButton>
+<div class="divider" />
+<br />
+<SfButton CssClass="e-warning" @onclick="ResetXMLEPG">Reset XML EPG for an update</SfButton>
+<div class="divider" />
+<br />
+
+<SfListBox CssClass="e-listbox-smallrow" TValue="string[]" DataSource="@LogItems" TItem="String">
+	@if (LogItems is not null)
+	{
+		@foreach (var log in LogItems)
+		{
+			<ListBoxFieldSettings Text="Text" Value="log" />
+		}
+	}
+</SfListBox>
+
+<SfToast ID="toast_default" @ref="ToastObj" Title="Utilities" Content="@ToastContent" Timeout="5000" Icon=".e-toast-message">
+	<ToastPosition X="@ToastPosition"></ToastPosition>
+</SfToast>
+
+<style>
+	#listbox-control {
+		width: 400px;
+		margin: auto;
+	}
+
+	/* I added to adjust the width	*/
+	.e-listbox-smallrow {
+		height: 700px;
+		width: 600px;
+	}
+
+	.e-listbox-smallrow .e-list-parent .e-list-item { /* I added to do line height */
+		line-height: 6px;
+		height: 16px;
+	}
+
+	.e-tooltip-wrap.e-popup {
+		background-color: white;
+		border: 2px solid #000;
+	}
+
+	.e-tooltip-wrap .e-tip-content {
+		color: darkblue;
+		font-size: 16px
+	}
+
+	.divider15 {
+		width: 5px;
+		height: auto;
+		display: inline-block;
+	}
+
+	.divider35 {
+		width: 55px;
+		height: auto;
+		display: inline-block;
+	}
+
+	.label-value {
+		display: inline-block;
+		padding-left: 30px;
+		padding-right: 30px;
+		padding-bottom: 10px;
+		padding-top: 10px;
+	}
+
+	.label-group {
+		display: inline-block;
+		background: antiquewhite;
+		padding-left: 40px;
+		padding-right: 40px;
+		padding-bottom: 10px;
+		padding-top: 10px;
+	}
+
+</style>
+

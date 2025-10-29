@@ -1,0 +1,151 @@
+﻿@using Microsoft.EntityFrameworkCore
+@using IPTV.data
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Layouts
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.Notifications
+@using Syncfusion.Blazor.Popups
+@using TooltipPosition = Syncfusion.Blazor.Popups.Position
+
+@page "/VOD_Movie"
+@inject IDbContextFactory<IptvDataContext> IptvContextFactory;
+<PageTitle>VOD Movie Database</PageTitle>
+
+
+<div class="label-value">Active portal: @ActivePortal</div>
+<div class="label-value">Selected category: @selectedCroup</div>
+<div class="label-value">Selected movie: @selectedMovie</div>
+<div class="label-value">Movie count: @CategoryMovies.Count</div>
+
+<div />
+<div class="divider35" />Mode:
+<div class="divider15" />
+<SfRadioButton @onchange="OnChangeCategoryMode" Label="Enabled categories" Name="options" Value="categories" @bind-Checked="editMode"></SfRadioButton>
+<SfRadioButton @onchange="OnChangeCategoryMode" Label="Movies in each category" Name="options" Value="movies" @bind-Checked="editMode"></SfRadioButton>
+<div class="divider15" />
+
+@if (OurCategories is not null && OurCategories.Count > 0)
+{
+	<SfToast ID="toast_default" @ref="ToastObj" Title="Groups and Movies" Timeout="5000" Icon=".e-toast-message">
+		<ToastPosition X="@ToastPosition"></ToastPosition>
+	</SfToast>
+	<div class="pane1">
+		<SfSplitter CssClass="out-splitter" Height="auto" Width="100%" SeparatorSize="4">
+			<SplitterPanes>
+				<SplitterPane Size="25%" Min="60px">
+					<ContentTemplate>
+						<div class='splitter-default-content' />
+						<div class="col-lg-12 control-section">
+							@*<div class="col-lg-12 control-section sb-property-border">*@
+							<div>
+								@*Initialize the Tooltip component*@
+								<SfTooltip Position="Position.TopRight" Content="Show just enabled movie categories">
+									<SfCheckBox Label="Only enabled categories" @bind-Checked="onlyshowselectedCategories" @onchange="onToggledEnabled"></SfCheckBox>
+								</SfTooltip>
+							</div>
+							@*</div>*@
+							<SfTextBox Placeholder='Filter categories' FloatLabelType='@FloatLabelType.Auto' Input="@CategoriesInputHandler"></SfTextBox>
+							@if (editMode == "categories")
+							{
+								<div id="listbox-control">
+									<SfListBox Value="@CategoryCBvalues" @ref="CategoryListBox" TValue="string[]" DataSource="@OurCategories" Height="825px" TItem="IPTV.data.SC_VOD_CAT_MOVIE">
+										<ListBoxSelectionSettings ShowCheckbox="true" ShowSelectAll="true"></ListBoxSelectionSettings>
+										<ListBoxEvents TValue="string[]" ValueChange="OnchangeCategory" TItem="IPTV.data.SC_VOD_CAT_MOVIE"></ListBoxEvents>
+										<ListBoxFieldSettings Text="Name" Value="SC_ID" />
+									</SfListBox>
+								</div>
+							}
+							else // this mode is viewing the movies in the category
+							{
+								<div id="listbox-control">
+									<SfListBox Value="@CategoryCBvalues" @ref="CategoryListBox" TValue="string[]" DataSource="@OurCategories" Height="825px" TItem="IPTV.data.SC_VOD_CAT_MOVIE">
+										<ListBoxSelectionSettings ShowCheckbox="false" ShowSelectAll="true"></ListBoxSelectionSettings>
+										<ListBoxEvents TValue="string[]" ValueChange="OnchangeCategory" TItem="IPTV.data.SC_VOD_CAT_MOVIE"></ListBoxEvents>
+										<ListBoxFieldSettings Text="Name" Value="SC_ID" />
+									</SfListBox>
+								</div>
+							}
+						</div>
+					</ContentTemplate>
+				</SplitterPane>
+				<SplitterPane Size="35%" Min="60px">
+					<ContentTemplate>
+						<div class='splitter-default-content' />
+						<div class="col-lg-12 control-section">
+							<div class="col-lg-8 control-section sb-property-border">
+								<div class="tooltip_style">
+									@*Initialize the Tooltip component*@
+									<SfTooltip Position="Position.TopRight" Content="tooltip">
+										Movies for the selected category
+									</SfTooltip>
+								</div>
+							</div>
+							<SfTextBox Placeholder='Filter movies' FloatLabelType='@FloatLabelType.Auto' Input="@CategoriesMoviesInputHandler"></SfTextBox>
+							<div id="listbox-control">
+								<SfListBox CssClass="e-horizontal-listbox" @ref="MovieListBox" TValue="string[]" DataSource="@CategoryMovies" Height="825px" TItem="IPTV.data.SC_VOD_MOVIE">
+									<ListBoxSelectionSettings ShowCheckbox="false" ShowSelectAll="true"></ListBoxSelectionSettings>
+									<ListBoxEvents TValue="string[]" TItem="IPTV.data.SC_VOD_MOVIE"></ListBoxEvents>
+									<ListBoxFieldSettings Text="name" Value="ID" />
+								</SfListBox>
+							</div>
+						</div>
+					</ContentTemplate>
+				</SplitterPane>
+			</SplitterPanes>
+		</SfSplitter>
+	</div>
+}
+
+<style>
+	#listbox-control {
+		width: 650px;
+		margin: auto;
+	}
+
+	.e-horizontal-listbox .e-list-parent .e-list-item {
+        width: max-content;
+        line-height: 10px;
+        height: 12px;
+    }
+
+	.e-tooltip-wrap.e-popup {
+		background-color: white;
+		border: 2px solid #000;
+	}
+
+	.e-tooltip-wrap .e-tip-content {
+		color: darkblue;
+		font-size: 16px
+	}
+
+	.divider15 {
+		width: 5px;
+		height: auto;
+		display: inline-block;
+	}
+
+	.divider35 {
+		width: 55px;
+		height: auto;
+		display: inline-block;
+	}
+
+	.label-value {
+		display: inline-block;
+		padding-left: 30px;
+		padding-right: 30px;
+		padding-bottom: 10px;
+		padding-top: 10px;
+	}
+
+	.label-group {
+		display: inline-block;
+		background: antiquewhite;
+		padding-left: 40px;
+		padding-right: 40px;
+		padding-bottom: 10px;
+		padding-top: 10px;
+	}
+
+</style>
+

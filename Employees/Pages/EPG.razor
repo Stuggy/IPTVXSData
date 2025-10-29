@@ -1,0 +1,327 @@
+﻿@using Microsoft.EntityFrameworkCore
+@using IPTV.data
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.SplitButtons
+@using Syncfusion.Blazor.Schedule
+@using Syncfusion.Blazor
+@using Syncfusion.Blazor.Inputs
+@using Syncfusion.Blazor.Layouts
+@using Syncfusion.Blazor.DropDowns
+
+@page "/EPG"
+@inject IDbContextFactory<IptvDataContext> IptvContextFactory;
+@inject Microsoft.AspNetCore.Components.NavigationManager UriHelper
+
+<PageTitle>EPG</PageTitle>
+<SfButton IsPrimary="true" @onclick="GoToCUrrentTime">Go to Current Time</SfButton>
+<div class="control-section">
+	<SfSchedule @ref="@ScheduleRef" TValue="epgData" Width="92%" Height="calc(100vh - 4.6rem)" EnableAutoRowHeight="true" @bind-SelectedDate="@CurrentDate" @bind-CurrentView="@CurrentView" StartHour="00:00" EndHour="24:00">
+		<ScheduleWorkHours Start="00:00" End="24:00"></ScheduleWorkHours>
+		
+		<ScheduleViews>
+			<ScheduleView MaxEventsPerRow="50" Option="View.TimelineDay">
+				<ScheduleViewTimeScale SlotCount="1" Interval="60"></ScheduleViewTimeScale>
+			</ScheduleView>
+			<ScheduleView MaxEventsPerRow="50" Option="View.TimelineWeek" Readonly="true" IsSelected="true">
+				<EventTemplate>
+					<div class="myBG">@((context as epgData).title)</div>
+					<ScheduleTimeScale Interval="30" SlotCount="2"></ScheduleTimeScale>
+				</EventTemplate>
+			</ScheduleView>
+		</ScheduleViews>
+		<ScheduleEvents TValue="epgData" DataBound="OnDataBound"></ScheduleEvents>
+		<ScheduleGroup EnableCompactView="false" Resources="@groupData"></ScheduleGroup>
+		<ScheduleResources>
+			<ScheduleResource TItem="SC_Channel_Data" TValue="int[]" DataSource="@channelData" Field="channelNumber" Title="Channel" Name="channelName" IdField="channelID" AllowMultiple="true"></ScheduleResource>
+		</ScheduleResources>
+		<ScheduleTemplates>
+			<HeaderIndentTemplate>
+				<div class="e-resource-text"><div class="name">Channel</div><div class="name">ID</div></div>
+			</HeaderIndentTemplate>
+			<ResourceHeaderTemplate>
+				<div class='template-wrap'>
+					<div class="room-name">@(((context as TemplateContext).ResourceData as SC_Channel_Data).channelName)</div>
+					<div class="room-name">@(((context as TemplateContext).ResourceData as SC_Channel_Data).ID)</div>
+				</div>
+			</ResourceHeaderTemplate>
+		</ScheduleTemplates>
+		<ScheduleEventSettings TValue="epgData" DataSource="@epgFromDB" IgnoreWhitespace="true" EnableTooltip="true">
+			<ChildContent>	
+			<ScheduleField>
+				<FieldSubject Title="Program" Name="title"></FieldSubject>
+				<FieldStartTime Name="startTimeDT"></FieldStartTime>
+				<FieldEndTime Title="End Time" Name="endTimeDT"></FieldEndTime>
+			</ScheduleField>
+			</ChildContent>
+			<TooltipTemplate>
+				@{
+					var eventData = (context as epgData);
+					<div class="tooltip-wrap">
+						<div class="content-area">
+							<div class="name">@eventData.title</div>
+							<div class="Plot">@eventData.plot</div>
+							<div class="Episode">@eventData.episodeName</div>
+							<div class="time">From : @eventData.startTimeDT</div>
+							<div class="time">To : @eventData.endTimeDT</div>
+						</div>
+					</div>
+				}
+			</TooltipTemplate>
+		</ScheduleEventSettings>
+	</SfSchedule>
+</div>
+
+
+<style>
+	/* The IdField IdField="ID" above seems to be the same as appointmentdata as far as caps.  I think IdField is the link between rows and columns
+										IdField="channelID" works but doesn't seem to match up
+										IdField="channelNumber" errors out
+										Field="channelNumber" refers to the epgData matching field - with IdField="channelID" they match up and work
+
+									*/
+
+	/*My custome CSS*/
+	.myBG {
+		/*background-color: #DD8F24; /* this is the background highlight to the event text*/
+		font-weight: 600;
+		font-size: large;
+		position: sticky; /* position combined with left below allows me to center the event text*/
+		left: 40%;
+	}
+
+	.e-schedule .e-timeline-view .e-work-cells {
+		background-color: #95CBDD; /* this colours cells that don't have any epg*/
+	}
+
+	.e-schedule .e-timeline-view .e-appointment {
+		background-color: #387062; /* This works for an event BG colour*/
+		align-items: center !important; /* This vertically aligns nicely */
+		/* text-indent: 50px;	/* this works*/
+	}
+	/*End of my custome CSS*/
+
+
+	.e-schedule .e-timeline-view .e-resource-left-td {
+		vertical-align: bottom;
+		width: 220px;
+	}
+
+		.e-schedule .e-timeline-view .e-resource-left-td .e-resource-text {
+			display: flex;
+			font-weight: 500;
+			padding: 0;
+		}
+
+			.e-schedule .e-timeline-view .e-resource-left-td .e-resource-text > div {
+				border-color: #0000001f;
+				border-style: solid;
+				border-width: 1px 1px 0 0;
+				flex: 0 0 33.3%;
+				font-weight: 500;
+				line-height: 36px;
+				padding-left: 5px;
+			}
+
+				.e-schedule .e-timeline-view .e-resource-left-td .e-resource-text > div:last-child {
+					border-right: 0;
+				}
+
+	.e-schedule .e-timeline-view .e-block-appointment {
+		align-items: center;
+		display: flex;
+		justify-content: left; /* orig left */
+	}
+
+	.e-schedule .template-wrap {
+		display: flex;
+		height: 100%;
+		text-align: center;
+	}
+
+	.e-schedule .e-resource-cells .template-wrap > div {
+		border-right-color: #0000001f;
+		border-right-style: solid;
+		border-right-width: 1px;
+		flex: 120px 20% 0; /* Channel width - there were 3 colums originally */
+		font-weight: 600;
+		line-height: 58px;
+		overflow: hidden;
+		padding-left: 5px;
+		text-overflow: ellipsis;
+	}
+
+	.material3 .e-schedule .e-resource-cells .template-wrap > div,
+	.material3-dark .e-schedule .e-resource-cells .template-wrap > div {
+		line-height: 83px;
+	}
+
+	.e-schedule .e-resource-cells .template-wrap > div:last-child {
+		border-right: 0;
+	}
+
+	.e-schedule .e-timeline-view .e-resource-cells,
+	.e-schedule .e-timeline-month-view .e-resource-cells {
+		padding-left: 0;
+	}
+
+	.e-schedule .e-timeline-view .e-date-header-wrap table col,
+	.e-schedule .e-timeline-view .e-content-wrap table col {
+		width: 100px;
+	}
+
+	.e-schedule .e-read-only {
+		opacity: .8;
+	}
+
+	.bootstrap4 .e-schedule .e-timeline-view .e-resource-left-td .e-resource-text,
+	.bootstrap5 .e-schedule .e-timeline-view .e-resource-left-td .e-resource-text,
+	.bootstrap5-dark .e-schedule .e-timeline-view .e-resource-left-td .e-resource-text,
+	.fluent2 .e-schedule .e-timeline-view .e-resource-left-td .e-resource-text,
+	.fluent2-dark .e-schedule .e-timeline-view .e-resource-left-td .e-resource-text,
+	.fluent2-highcontrast .e-schedule .e-timeline-view .e-resource-left-td .e-resource-text {
+		height: 37px;
+	}
+
+		.bootstrap4 .e-schedule .e-timeline-view .e-resource-left-td .e-resource-text > div,
+		.fluent2 .e-schedule .e-timeline-view .e-resource-left-td .e-resource-text > div,
+		.fluent2-dark .e-schedule .e-timeline-view .e-resource-left-td .e-resource-text > div,
+		.fluent2-highcontrast .e-schedule .e-timeline-view .e-resource-left-td .e-resource-text > div {
+			height: 37px;
+			line-height: 37px;
+		}
+
+	.material3 .e-schedule .e-timeline-view .e-resource-left-td .e-resource-text,
+	.material3-dark .e-schedule .e-timeline-view .e-resource-left-td .e-resource-text {
+		height: 40px;
+	}
+
+		.material3 .e-schedule .e-timeline-view .e-resource-left-td .e-resource-text > div,
+		.material3-dark .e-schedule .e-timeline-view .e-resource-left-td .e-resource-text > div {
+			height: 40px;
+			line-height: 40px;
+		}
+
+	.fluent2 .e-schedule .e-resource-cells .template-wrap > div,
+	.fluent2 .e-schedule .e-timeline-view .e-resource-left-td .e-resource-text > div {
+		border-color: #e0e0e0;
+	}
+
+	.fluent2-dark .e-schedule .e-resource-cells .template-wrap > div,
+	.fluent2-dark .e-schedule .e-timeline-view .e-resource-left-td .e-resource-text > div {
+		border-color: #525252;
+	}
+
+	.fluent2-highcontrast .e-schedule .e-resource-cells .template-wrap > div,
+	.fluent2-highcontrast .e-schedule .e-timeline-view .e-resource-left-td .e-resource-text > div {
+		border-color: #fff;
+	}
+
+	.material3 .e-schedule .e-resource-cells .template-wrap > div,
+	.material3 .e-schedule .e-timeline-view .e-resource-left-td .e-resource-text > div {
+		border-color: #c4c7c5;
+	}
+
+	.material3-dark .e-schedule .e-resource-cells .template-wrap > div,
+	.material3-dark .e-schedule .e-timeline-view .e-resource-left-td .e-resource-text > div {
+		border-color: #444746;
+	}
+
+	.bootstrap4.e-bigger .e-schedule .e-timeline-view .e-resource-left-td .e-resource-text,
+	.bootstrap5.e-bigger .e-schedule .e-timeline-view .e-resource-left-td .e-resource-text,
+	.bootstrap5-dark.e-bigger .e-schedule .e-timeline-view .e-resource-left-td .e-resource-text,
+	.fluent2.e-bigger .e-schedule .e-timeline-view .e-resource-left-td .e-resource-text,
+	.fluent2-dark.e-bigger .e-schedule .e-timeline-view .e-resource-left-td .e-resource-text,
+	.fluent2-highcontrast.e-bigger .e-schedule .e-timeline-view .e-resource-left-td .e-resource-text {
+		height: 39px;
+	}
+
+		.bootstrap4.e-bigger .e-schedule .e-timeline-view .e-resource-left-td .e-resource-text > div,
+		.fluent2.e-bigger .e-schedule .e-timeline-view .e-resource-left-td .e-resource-text > div,
+		.fluent2-dark.e-bigger .e-schedule .e-timeline-view .e-resource-left-td .e-resource-text > div,
+		.fluent2-highcontrast.e-bigger .e-schedule .e-timeline-view .e-resource-left-td .e-resource-text > div {
+			height: 39px;
+			line-height: 39px;
+		}
+
+	.tailwind .e-schedule .e-timeline-view .e-resource-left-td .e-resource-text > div,
+	.tailwind-dark .e-schedule .e-timeline-view .e-resource-left-td .e-resource-text > div {
+		line-height: 38px;
+	}
+
+	.tailwind .e-schedule .e-timeline-view .e-resource-left-td .e-resource-text > div {
+		background-color: #f3f4f6;
+		border-color: #e5e7eb;
+	}
+
+	.tailwind-dark .e-schedule .e-timeline-view .e-resource-left-td .e-resource-text > div {
+		background-color: #374151;
+		border-color: #4b5563;
+	}
+
+	.tailwind.e-bigger .e-schedule .e-timeline-view .e-resource-left-td .e-resource-text > div,
+	.tailwind-dark.e-bigger .e-schedule .e-timeline-view .e-resource-left-td .e-resource-text > div {
+		line-height: 40px;
+	}
+
+	.highcontrast .e-schedule .e-timeline-view .e-resource-left-td .e-resource-text > div {
+		border-color: #969696;
+	}
+
+	.fabric .e-schedule .e-timeline-view .e-resource-left-td,
+	.fabric-dark .e-schedule .e-timeline-view .e-resource-left-td {
+		width: 240px;
+	}
+
+		.fabric-dark .e-schedule .e-resource-cells .template-wrap > div,
+		.fabric-dark .e-schedule .e-timeline-view .e-resource-left-td .e-resource-text > div {
+			border-color: #414040;
+		}
+
+	.fluent-dark .e-schedule .e-resource-cells .template-wrap > div,
+	.fluent-dark .e-schedule .e-timeline-view .e-resource-left-td .e-resource-text > div {
+		border-color: #292827;
+	}
+
+	.bootstrap-dark .e-schedule .e-resource-cells .template-wrap > div,
+	.bootstrap-dark .e-schedule .e-timeline-view .e-resource-left-td .e-resource-text > div {
+		border-color: #505050;
+	}
+
+	.bootstrap5-dark .e-schedule .e-resource-cells .template-wrap > div,
+	.bootstrap5-dark .e-schedule .e-timeline-view .e-resource-left-td .e-resource-text > div {
+		border-color: #444c54;
+	}
+
+	.tailwind-dark .e-schedule .e-resource-cells .template-wrap > div {
+		border-color: #4b5563;
+	}
+
+	.highcontrast .e-schedule .e-resource-cells .template-wrap > div {
+		border-color: #969696;
+	}
+
+	@@media (max-width: 550px) {
+		.e-schedule .e-timeline-view .e-resource-left-td {
+			width: 100px;
+		}
+
+			.e-schedule .e-timeline-view .e-resource-left-td .e-resource-text > div,
+			.e-schedule .e-resource-cells .template-wrap > div {
+				flex: 0 0 100%;
+			}
+
+				.e-schedule .e-resource-cells .template-wrap > div:first-child {
+					border-right: 0;
+				}
+
+				.e-schedule .e-timeline-view .e-resource-left-td .e-resource-text > div:first-child {
+					border-right: 0;
+				}
+
+		.e-schedule .room-type,
+		.e-schedule .room-capacity {
+			display: none;
+		}
+	}
+
+</style>

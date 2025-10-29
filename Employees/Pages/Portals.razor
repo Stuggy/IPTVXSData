@@ -1,0 +1,175 @@
+﻿@using Microsoft.EntityFrameworkCore
+@using IPTV.data
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.Grids
+@using sfg = Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor
+@using Syncfusion.Blazor.Inputs
+@using Syncfusion.Blazor.Layouts
+@using Syncfusion.Blazor.DropDowns
+@page "/"
+@inject IDbContextFactory<IptvDataContext> IptvContextFactory;
+
+<PageTitle>Portals List </PageTitle>
+
+<div class="label-value">Active portal: @PortalToUpdate.ID</div>
+@if (ShowCreate)@*// this is to create a new portal*@
+{
+	<h3>Add a Portal</h3>
+	<div class="row">
+		<div class="offset-3 col-4">
+			<SfTextBox Placeholder='MAC address' FloatLabelType='@FloatLabelType.Auto' @bind-Value="@NewPortal.MacAddress"></SfTextBox>
+			<SfTextBox Placeholder='Server address' FloatLabelType='@FloatLabelType.Auto' @bind-Value="@NewPortal.ServerAddress"></SfTextBox>
+			<SfTextBox Placeholder='TimeZone' FloatLabelType='@FloatLabelType.Auto' @bind-Value="@NewPortal.TimeZone"></SfTextBox>
+			<SfTextBox Placeholder='Login' FloatLabelType='@FloatLabelType.Auto' @bind-Value="@NewPortal.Login"></SfTextBox>
+			<SfTextBox Placeholder='Password' FloatLabelType='@FloatLabelType.Auto' @bind-Value="@NewPortal.Password"></SfTextBox>
+			<SfCheckBox Label="CacheGuide" LabelPosition="Syncfusion.Blazor.Buttons.LabelPosition.Before" @bind-Checked="IsGuideCached"></SfCheckBox><br />
+
+			<SfNumericTextBox Placeholder='GuideCacheTime' FloatLabelType='@FloatLabelType.Auto' TValue="int?" @bind-Value=@NewPortal.GuideCacheTime></SfNumericTextBox>
+			<SfNumericTextBox Placeholder='EPGTimeShift' FloatLabelType='@FloatLabelType.Auto' TValue="int?" @bind-Value=@NewPortal.EPGTimeShift></SfNumericTextBox>
+			<SfTextBox Placeholder='Token' FloatLabelType='@FloatLabelType.Auto' @bind-Value="@NewPortal.Token"></SfTextBox>
+			<SfTextBox Placeholder='Serial Number' FloatLabelType='@FloatLabelType.Auto' @bind-Value="@NewPortal.SerialNumber"></SfTextBox>
+			<SfTextBox Placeholder='DeviceID' FloatLabelType='@FloatLabelType.Auto' @bind-Value="@NewPortal.DeviceID"></SfTextBox>
+			<SfTextBox Placeholder='DeviceID2' FloatLabelType='@FloatLabelType.Auto' @bind-Value="@NewPortal.DeviceID2"></SfTextBox>
+			<SfTextBox Placeholder='Comments' FloatLabelType='@FloatLabelType.Auto' @bind-Value="@NewPortal.Comments"></SfTextBox>
+			<SfTextBox Placeholder='Source URL' FloatLabelType='@FloatLabelType.Auto' @bind-Value="@NewPortal.SourceURL"></SfTextBox>
+			<SfCheckBox Label="Requires fresh token" LabelPosition="Syncfusion.Blazor.Buttons.LabelPosition.Before" @bind-Checked="RequiresFreshToken"></SfCheckBox><br />
+		</div>
+	</div>
+	<div class="form-group row">
+		<div class="offset-4 col-8">
+			<SfButton IsPrimary="true" @onclick="CreateNewPortal">Create New Portal</SfButton>
+		</div>
+	</div>
+}
+else 
+@*This is to update*@
+{
+	<div class="pane1">
+		<SfSplitter CssClass="out-splitter" Height="auto" Width="100%" SeparatorSize="4">
+			<SplitterPanes>
+				<SplitterPane Size="15%" Min="30px">
+					<ContentTemplate>
+						<div class='splitter-default-content' />
+						<div class="col-lg-12 control-section">
+							Portal ID's    <SfCheckBox Label="Only active " @bind-Checked="onlyactiveportals" @onchange="@onActivePortalsChange"></SfCheckBox>
+							<div id="listbox-control">
+								<SfListBox TValue="long[]" Value="@portalSelectedvalues" DataSource="@OurPortals" Height="auto" TItem="IPTV.data.Portal" @ref="PortalListBoxObj">
+									<ListBoxEvents TValue="long[]" ValueChange="onPortalChange" TItem="IPTV.data.Portal"></ListBoxEvents>
+									<ListBoxFieldSettings Text="ID" Value="ID" />
+									<ListBoxSelectionSettings Mode="Syncfusion.Blazor.DropDowns.SelectionMode.Single"></ListBoxSelectionSettings>
+								</SfListBox>
+							</div>
+						</div>
+					</ContentTemplate>
+				</SplitterPane>
+				<SplitterPane Size="85%" Min="60px">
+					<ContentTemplate>
+						<div class='splitter-default-content' />
+						<div class="col-lg-12 control-section">
+							@if (OurPortals is not null && OurPortals.Count > 0)
+							{
+								@foreach (var portal in OurPortals)
+								{
+									@if (@portal.ID == SelectedPortalID)
+									{
+										<SfTextBox @bind-Value="@PortalToUpdate.MacAddress" Placeholder='Mac Address' FloatLabelType='@FloatLabelType.Auto' Width="200px"></SfTextBox>
+										<SfTextBox @bind-Value="@PortalToUpdate.ServerAddress" Placeholder='Server address' FloatLabelType='@FloatLabelType.Auto' Width="300px"></SfTextBox>
+										<SfTextBox @bind-Value="@PortalToUpdate.TimeZone" Placeholder='TimeZone' FloatLabelType='@FloatLabelType.Auto' Width="200px"></SfTextBox>
+
+										<br />
+										<SfTextBox @bind-Value="@PortalToUpdate.Login" Placeholder='Login' FloatLabelType='@FloatLabelType.Auto' Width="200px"></SfTextBox>
+										<SfTextBox @bind-Value="@PortalToUpdate.Password" Placeholder='Password' FloatLabelType='@FloatLabelType.Auto' Width="200px"></SfTextBox>
+										<SfCheckBox Label="Active portal" @bind-Checked="PortalIsActive"></SfCheckBox>
+
+										<br />
+										<SfCheckBox Label="Cache guide data" @bind-Checked="IsGuideCached" @onchange="@CacheCheckboxChange"></SfCheckBox>
+										<SfCheckBox Label="Requires fresh token" @bind-Checked="RequiresFreshToken"></SfCheckBox>
+										<SfNumericTextBox TValue="int?" @bind-Value="@PortalToUpdate.GuideCacheTime" Width="200px" Placeholder='Cache time' FloatLabelType='@FloatLabelType.Auto'></SfNumericTextBox>
+										<SfNumericTextBox TValue="int?" @bind-Value="@PortalToUpdate.EPGTimeShift" Width="200px" Placeholder='Timeshift' FloatLabelType='@FloatLabelType.Auto'></SfNumericTextBox>
+										<br />
+										<SfTextBox @bind-Value="@PortalToUpdate.Token" Placeholder='Token' FloatLabelType='@FloatLabelType.Auto' Width="300px"></SfTextBox>
+										<SfTextBox @bind-Value="@PortalToUpdate.SerialNumber" Placeholder='Serial Number' FloatLabelType='@FloatLabelType.Auto' Width="400px"></SfTextBox>
+										<br />
+										<SfTextBox @bind-Value="@PortalToUpdate.DeviceID" Placeholder='DeviceID' FloatLabelType='@FloatLabelType.Auto' Width="700px"></SfTextBox>
+										<SfTextBox @bind-Value="@PortalToUpdate.DeviceID2" Placeholder='DeviceID2' FloatLabelType='@FloatLabelType.Auto' Width="700px"></SfTextBox><br/>
+										<SfTextBox @bind-Value="@PortalToUpdate.Signature" Placeholder='Signature' FloatLabelType='@FloatLabelType.Auto' Width="300px"></SfTextBox>
+										<br />
+										<SfTextBox @bind-Value="@PortalToUpdate.Comments" Multiline=true Placeholder='Comments' FloatLabelType='@FloatLabelType.Auto' Width="800px" Height="500px"></SfTextBox>
+
+										<br />
+										<SfTextBox @bind-Value="@PortalToUpdate.SourceURL" Placeholder='Source URL' FloatLabelType='@FloatLabelType.Auto' Width="900px"></SfTextBox>
+										<br />
+										<div class="col-xs-12 col-sm-12 col-lg-6 col-md-6">
+											<SfButton IsPrimary="true" @onclick="UpdatePortal">Save</SfButton><SfButton IsPrimary="true" @onclick=@(args => DeletePortal((portal)))>Delete</SfButton>
+											<SfButton IsPrimary="true" @onclick="ShowCreateForm">Add Portal</SfButton>
+										</div>
+									}
+								}
+
+							}
+						</div>
+					</ContentTemplate>
+				</SplitterPane>
+			</SplitterPanes>
+		</SfSplitter>
+	</div>
+}
+
+<style>
+
+	# button-control {
+		width: 100%;
+		margin: 8% 0;
+		text-align: center;
+	}
+
+	textarea.e-input,
+	.e-float-input textarea,
+	.e-float-input.e-control-wrapper textarea,
+	.e-input-group textarea,
+	.e-input-group.e-control-wrapper textarea {
+		font: 1.0rem "Helvetica", serif;
+		background: AliceBlue;
+		height: 250px;
+	}
+
+	.e-input-group input:valid{
+		font: 1.0rem "Helvetica", serif;
+		background: AliceBlue;
+	}
+
+	.label-value {
+		display: inline-block;
+		padding-left: 30px;
+		padding-right: 30px;
+		padding-bottom: 10px;
+		padding-top: 10px;
+	}
+
+	.label-group {
+		display: inline-block;
+		background: antiquewhite;
+		padding-left: 40px;
+		padding-right: 40px;
+		padding-bottom: 10px;
+		padding-top: 10px;
+	}
+	
+</style>
+
+
+@code
+{
+	
+	void OnChange(string value, string name)
+	{
+		//console.Log($"{name} value changed to {value}");
+	}
+
+	void OnChangeBool(bool value)
+	{
+		//console.Log($"{name} value changed to {value}");
+		//int flag = (boolValue) ? 1 : 0;
+	}
+}

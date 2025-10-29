@@ -1,0 +1,218 @@
+﻿@using Microsoft.EntityFrameworkCore
+@using IPTV.data
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Layouts
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.Notifications
+@using Syncfusion.Blazor.Popups
+@using TooltipPosition = Syncfusion.Blazor.Popups.Position
+@using Syncfusion.Blazor.SplitButtons
+
+@page "/GroupsChannels"
+@inject IDbContextFactory<IptvDataContext> IptvContextFactory;
+<PageTitle>Groups and Channels</PageTitle>
+
+<div class="label-value">Active portal: @ActivePortal</div>
+<div class="label-value">Selected group: @selectedGroup</div>
+<div class="label-value">Selected channel: @selectedChannel</div>
+<div class="label-value">Editmode: @editMode</div>
+@if (ShowCreate)        @* ----------------- This is for adding a new group ----------------- *@
+{
+}
+else    @* ----------------- This is for showing the groups ----------------- *@
+{
+	<SfButtonGroup Mode="Syncfusion.Blazor.SplitButtons.SelectionMode.Single">
+		<ButtonGroupButton CssClass="e-success e-outline" @bind-Selected="groupmode" @onchange="@OnClickHandler">Groups</ButtonGroupButton>
+		<ButtonGroupButton CssClass="e-info e-outline" @bind-Selected="channelmode" @onchange="@OnClickHandler">Channels</ButtonGroupButton>
+	</SfButtonGroup>
+	<div class="divider" />
+	@if (editMode == "channels")
+	{
+		<div class="label-group">
+			<span>XML categories:</span>
+			<SfRadioButton @onchange="OnChangeTimeZone" Label="SA" Name="country" Value="SA" @bind-Checked="TimeZone"></SfRadioButton>
+			<SfRadioButton @onchange="OnChangeTimeZone" Label="UK" Name="country" Value="UK" @bind-Checked="TimeZone"></SfRadioButton>
+			<SfRadioButton @onchange="OnChangeTimeZone" Label="US" Name="country" Value="US" @bind-Checked="TimeZone"></SfRadioButton>
+		</div>
+	}
+	@if (OurGroups is not null && OurGroups.Count > 0)
+	{
+		<SfToast ID="toast_default" @ref="ToastObj" Title="Groups and Channels" Timeout="5000" Icon=".e-toast-message">
+			<ToastPosition X="@ToastPosition"></ToastPosition>
+		</SfToast>
+		<div class="pane1">
+			<SfSplitter CssClass="out-splitter" Height="auto" Width="@sizing" SeparatorSize="4">
+				<SplitterPanes>
+					@if (editMode == "groups")
+					{
+						<SplitterPane Size="85%" Min="60px">
+							<ContentTemplate>
+								<div class='splitter-default-content' />
+								<div class="col-lg-12 control-section">
+									@*<div class="col-lg-12 control-section sb-property-border">*@
+									<div>
+										@*Initialize the Tooltip component*@
+										<SfTooltip Position="Position.TopRight" Content="Highlight one or more groups and click the XML category to assign them to">
+											Groups
+											<div class="label-value"><SfCheckBox Label="Only enabled" @bind-Checked="OnlyShowEnabledGroups" @onchange="onToggledEnabled"></SfCheckBox></div>
+										</SfTooltip>
+									</div>
+									@*</div>*@
+									<SfTextBox Placeholder='Filter groups' FloatLabelType='@FloatLabelType.Auto' Input="@GroupsInputHandler"></SfTextBox>
+									@if (editMode == "groups")
+									{
+										<div id="listbox-control">
+											<SfListBox Value="@groupCBvalues" @ref="GroupListBox" TValue="string[]" DataSource="@OurGroups" Height="825px" TItem="IPTV.data.SC_Groups">
+												<ListBoxSelectionSettings ShowCheckbox=@showgroupboxes ShowSelectAll="true"></ListBoxSelectionSettings>
+												<ListBoxEvents TValue="string[]" ValueChange="OnchangeGroup" TItem="IPTV.data.SC_Groups"></ListBoxEvents>
+												<ListBoxFieldSettings Text="Name" Value="SC_ID" />
+											</SfListBox>
+										</div>
+									}
+									else
+									{
+										<div id="listbox-control">
+											<SfListBox Value="@groupCBvalues" @ref="GroupListBox" TValue="string[]" DataSource="@OurGroups" Height="825px" TItem="IPTV.data.SC_Groups">
+												<ListBoxEvents TValue="string[]" ValueChange="OnchangeGroup" TItem="IPTV.data.SC_Groups"></ListBoxEvents>
+												<ListBoxFieldSettings Text="Name" Value="SC_ID" />
+											</SfListBox>
+										</div>
+									}
+								</div>
+							</ContentTemplate>
+						</SplitterPane>
+					}
+					@if (editMode == "channels")
+					{
+						<SplitterPane Size="25%" Min="60px">
+							<ContentTemplate>
+								<div class='splitter-default-content' />
+								<div class="col-lg-12 control-section">
+									@*<div class="col-lg-12 control-section sb-property-border">*@
+									<div>
+										@*Initialize the Tooltip component*@
+										<SfTooltip Position="Position.TopRight" Content="Highlight one or more groups and click the XML category to assign them to">
+											Groups
+											<div class="label-value"><SfCheckBox Label="Only enabled" @bind-Checked="OnlyShowEnabledGroups" @onchange="onToggledEnabled"></SfCheckBox></div>
+										</SfTooltip>
+									</div>
+									@*</div>*@
+									<SfTextBox Placeholder='Filter groups' FloatLabelType='@FloatLabelType.Auto' Input="@GroupsInputHandler"></SfTextBox>
+									@if (editMode == "groups")
+									{
+										<div id="listbox-control">
+											<SfListBox Value="@groupCBvalues" @ref="GroupListBox" TValue="string[]" DataSource="@OurGroups" Height="825px" TItem="IPTV.data.SC_Groups">
+												<ListBoxSelectionSettings ShowCheckbox=@showgroupboxes ShowSelectAll="true"></ListBoxSelectionSettings>
+												<ListBoxEvents TValue="string[]" ValueChange="OnchangeGroup" TItem="IPTV.data.SC_Groups"></ListBoxEvents>
+												<ListBoxFieldSettings Text="Name" Value="SC_ID" />
+											</SfListBox>
+										</div>
+									}
+									else
+									{
+										<div id="listbox-control">
+											<SfListBox Value="@groupCBvalues" @ref="GroupListBox" TValue="string[]" DataSource="@OurGroups" Height="825px" TItem="IPTV.data.SC_Groups">
+												<ListBoxEvents TValue="string[]" ValueChange="OnchangeGroup" TItem="IPTV.data.SC_Groups"></ListBoxEvents>
+												<ListBoxFieldSettings Text="Name" Value="SC_ID" />
+											</SfListBox>
+										</div>
+									}
+								</div>
+							</ContentTemplate>
+						</SplitterPane>
+						<SplitterPane Size="35%" Min="60px">
+							<ContentTemplate>
+								<div class='splitter-default-content' />
+								<div class="col-lg-12 control-section">
+									<div class="col-lg-8 control-section sb-property-border">
+										<div class="tooltip_style">
+											@*Initialize the Tooltip component*@
+											<SfTooltip Position="Position.TopRight" Content="To allocate just some of the channels to an XML group select them first then click the XML group">
+												Channels linked to selected group - read only (can filter)
+											</SfTooltip>
+										</div>
+									</div>
+									<SfTextBox Placeholder='Filter channels' FloatLabelType='@FloatLabelType.Auto' Input="@GroupsChannelsInputHandler"></SfTextBox>
+									<div id="listbox-control">
+										<SfListBox @ref="GroupChanListBox" TValue="string[]" DataSource="@GroupChannels" Height="825px" TItem="IPTV.data.SC_Channel">
+											<ListBoxSelectionSettings ShowCheckbox="false" ShowSelectAll="true"></ListBoxSelectionSettings>
+											<ListBoxEvents TValue="string[]" TItem="IPTV.data.SC_Channel"></ListBoxEvents>
+											<ListBoxFieldSettings Text="name" Value="uniqueID" />
+										</SfListBox>
+									</div>
+								</div>
+							</ContentTemplate>
+						</SplitterPane>
+						<SplitterPane Size="30%" Min="60px">
+							<ContentTemplate>
+								<div class='splitter-default-content' />
+								<div class="col-lg-12 control-section">
+									All Channels (edit individaul channel group members)<div class="divider" />
+									<SfCheckBox Label="Only group members " @bind-Checked="onlyshowselectedchannels" @onchange="onToggledAllEnabled"></SfCheckBox>
+									<SfTextBox Placeholder='Filter channels' FloatLabelType='@FloatLabelType.Auto' Input="@AllChannelsInputHandler"></SfTextBox>
+									<div id="listbox-control">
+										<SfListBox Value="@channelCBvalues" TValue="string[]" DataSource="@AllChannels" Height="825px" TItem="IPTV.data.SC_Channel">
+											<ListBoxSelectionSettings ShowCheckbox="true" ShowSelectAll="true"></ListBoxSelectionSettings>
+											<ListBoxEvents TValue="string[]" ValueChange="ChangeChannelToGroup" TItem="IPTV.data.SC_Channel"></ListBoxEvents>
+											<ListBoxFieldSettings Text="name" Value="uniqueID" />
+										</SfListBox>
+									</div>
+								</div>
+							</ContentTemplate>
+						</SplitterPane>
+					}
+				</SplitterPanes>
+			</SfSplitter>
+		</div>
+	}
+}
+
+<style>
+	#listbox-control {
+		width: 400px;
+		margin: auto;
+	}
+
+	.e-tooltip-wrap.e-popup {
+		background-color: white;
+		border: 2px solid #000;
+	}
+
+	.e-tooltip-wrap .e-tip-content {
+		color: darkblue;
+		font-size: 16px
+	}
+
+	.divider {
+		width: 20px;
+		height: auto;
+		display: inline-block;
+	}
+
+	.label-value {
+		display: inline-block;
+		padding-left: 30px;
+		padding-right: 30px;
+		padding-bottom: 10px;
+		padding-top: 10px;
+	}
+
+	.label-group {
+		display: inline-block;
+		background: antiquewhite;
+		padding-left: 40px;
+		padding-right: 40px;
+		padding-bottom: 10px;
+		padding-top: 10px;
+	}
+
+</style>
+
+@*
+.e-listbox-container .e-list-item{
+		background-color: green;
+		height: 20px;
+		line-height: 200px;
+	}
+
+*@

@@ -1,0 +1,25 @@
+﻿@using Syncfusion.Blazor.DropDowns
+@using System.Collections.ObjectModel
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.SplitButtons
+
+@page "/Demo"
+<PageTitle>Demo testing</PageTitle>
+Groupmode @groupmode Channelmode @channelmode Checkboxes checked @value.Length
+<div class="divider" />
+<SfButton CssClass="e-primary" @onclick="CheckABox">Check a box</SfButton>
+<SfButton CssClass="e-primary" @onclick="ClearData">Clear data</SfButton>
+<SfButtonGroup Mode="Syncfusion.Blazor.SplitButtons.SelectionMode.Single">
+	<ButtonGroupButton CssClass="e-success e-outline" @bind-Selected="groupmode" @onchange="@OnClickHandler">Groups</ButtonGroupButton>
+	<ButtonGroupButton CssClass="e-info e-outline" @bind-Selected="channelmode" @onchange="@OnClickHandler">Channels</ButtonGroupButton>
+</SfButtonGroup>
+<SfListBox Value="@value" TValue="string[]" TItem="VehicleData" DataSource="@Vehicles">
+	<ListBoxFieldSettings Text="Text" Value="Id" />
+	<ListBoxSelectionSettings ShowCheckbox="true"></ListBoxSelectionSettings>
+</SfListBox>
+
+<SfButton CssClass="e-btn" Content="Modify Data" @onclick="modifyData"></SfButton>
+
+@code {
+
+}

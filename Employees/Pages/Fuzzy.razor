@@ -1,0 +1,169 @@
+﻿@using Microsoft.EntityFrameworkCore
+@using IPTV.data
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Layouts
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.Notifications
+@using Syncfusion.Blazor.Popups
+@using TooltipPosition = Syncfusion.Blazor.Popups.Position
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.ProgressBar
+
+@page "/Fuzzy"
+@inject IDbContextFactory<IptvDataContext> IptvContextFactory;
+<PageTitle>Fuzzy match to XML EPG</PageTitle>
+
+@if (ShowProgress)
+{
+	<SfProgressBar @ref=@pBar Value=@progressValue Minimum="0" Maximum=@progressMax TrackThickness="12" ProgressThickness="12" ShowProgressValue="true">
+		<ProgressBarAnimation Enable="true" Delay="0"></ProgressBarAnimation>
+	</SfProgressBar>
+}
+<div class="p">
+	<div class="label-value">Active portal: @ActivePortal</div>
+	<div class="label-value">Selected channel: @selectedChannelID</div>
+	<div class="label-value">List count: @XMLObject.Count</div>
+	<div class="label-value">Unmatched to guide: @unmatchedCount</div>
+	Show unmatched channels
+	<SfSwitch @bind-Checked="bShowUnmatched" OnLabel="On" OffLabel="Off"></SfSwitch>
+</div>
+@if (!bShowUnmatched)
+{
+	<div class="divider" />
+	<div class="label-value"><SfButton Disabled="@bFuzzy" IsPrimary="true" @onclick="DoFuzzyMatches">Create EPG matches</SfButton></div>
+	<SfButton IsPrimary="true" @onclick="resetSC_Channel_Data">Delete SC_Channel_Data</SfButton>
+	<div class="label-group">
+		<SfButton IsPrimary="true" @onclick="ShowMatchesByXML">Show matches by XML</SfButton>
+		<SfButton IsPrimary="true" @onclick="ShowMatchesByChannels">Show matches by channels</SfButton>
+		<SfButton IsPrimary="true" @onclick="ClearList">Clear all data</SfButton>
+	</div>
+}
+
+@if (bShowUnmatched)
+{
+	<SfGrid DataSource="@UnmatchedChannels" RowHeight="20" AllowFiltering="true" Width="1200" Height="800" FilterBarMode="Immediate">
+	</SfGrid>
+}
+
+@if (XMLObject is not null && !bShowUnmatched)
+{
+	<SfGrid @ref="Grid" DataSource="@XMLObject" RowHeight="20" AllowFiltering="true" Width="1200" Height="800" FilterBarMode="Immediate">
+		<GridEditSettings AllowAdding="false" AllowEditing="false" AllowDeleting="false"></GridEditSettings>
+		<GridSelectionSettings Type="Syncfusion.Blazor.Grids.SelectionType.Single"></GridSelectionSettings>
+		<GridFilterSettings Mode="FilterBarMode.Immediate" ImmediateModeDelay=300></GridFilterSettings>
+		<GridColumns>
+			<GridColumn Field="channelID" HeaderText="ID" IsPrimaryKey="true" Width="70" FilterSettings="@(new FilterSettings{ Operator = Operator.Contains })"></GridColumn>
+			<GridColumn Field="Name" HeaderText="Name" Width="180" FilterSettings="@(new FilterSettings{ Operator = Operator.Contains })"></GridColumn>
+			<GridColumn Field="Score" HeaderText="Score" Width="70"></GridColumn>
+			<GridColumn Field="XMLName" HeaderText="XML friendly Name" Width="240" FilterSettings="@(new FilterSettings{ Operator = Operator.Contains })"></GridColumn>
+			<GridColumn Field="XMLIDName" HeaderText="XML IDName" Width="240" FilterSettings="@(new FilterSettings{ Operator = Operator.Contains })"></GridColumn>
+			<GridColumn Field="TimeZone" HeaderText="Zone" Width="60" FilterSettings="@(new FilterSettings{ Operator = Operator.Contains })"></GridColumn>
+			<GridColumn Field="XMLSource" HeaderText="Source" Width="80" FilterSettings="@(new FilterSettings{ Operator = Operator.Contains })"></GridColumn>
+		</GridColumns>
+	</SfGrid>
+	<SfToast ID="toast_default" @ref="ToastObj" Title="XML Channels" Timeout="5000" Icon=".e-toast-message">
+		<ToastPosition X="@ToastPosition"></ToastPosition>
+	</SfToast>
+}
+
+<style>
+	.label-value {
+		display: inline-block;
+		padding-left: 40px;
+		padding-right: 40px;
+		padding-bottom: 10px;
+		padding-top: 10px;
+	}
+
+	.label-group {
+		display: inline-block;
+		background: antiquewhite;
+		padding-left: 40px;
+		padding-right: 40px;
+		padding-bottom: 10px;
+		padding-top: 10px;
+	}
+
+	.p {
+		font-family: Tahoma;
+		font-size: 14px;
+	}
+
+</style>
+
+<!--
+ .e-grid {
+		 margin: 180px;  // this nicely indents the grid
+	 }
+
+
+	 flexing items on a row:
+
+	 <ul class="flex-container space-between">
+		 </ul>
+
+
+	.flex-container {
+		padding: 0;
+		margin: 0;
+		list-style: none;
+		display: flex;
+	}
+
+	.flex-start {
+		justify-content: flex-start;
+	}
+
+	.flex-end {
+		justify-content: flex-end;
+	}
+
+		.flex-end li {
+			background: gold;
+		}
+
+	.center {
+		justify-content: center;
+	}
+
+		.center li {
+			background: deepskyblue;
+		}
+
+	.space-between {
+		justify-content: space-between;
+	}
+
+		.space-between li {
+			background: lightgreen;
+		}
+
+	.space-around {
+		justify-content: space-around;
+	}
+
+		.space-around li {
+			background: hotpink;
+		}
+
+	.space-evenly {
+		justify-content: space-evenly;
+	}
+
+		.space-evenly li {
+			background: #bada55;
+		}
+
+	.flex-item {
+		background: tomato;
+		padding: 5px;
+		width: 60px;
+		height: 50px;
+		margin: 5px;
+		line-height: 50px;
+		color: white;
+		font-weight: bold;
+		font-size: 2em;
+		text-align: center;
+	}
+-->

@@ -1,0 +1,35 @@
+﻿﻿@using Microsoft.EntityFrameworkCore
+@using IPTV.data
+@inject IDbContextFactory<IptvDataContext> IptvContextFactory;
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Buttons
+@page "/XMLRename"
+
+<SfGrid DataSource="@GridData" @ref="Grid" Toolbar="@(new List<string>() { "Add", "Edit", "Delete", "Cancel", "Update" })">
+    <GridEditSettings AllowAdding="true" AllowEditing="true" AllowDeleting="true"></GridEditSettings>
+    <GridSelectionSettings Type="Syncfusion.Blazor.Grids.SelectionType.Single"></GridSelectionSettings>
+    <GridEvents RowSelected="GetSelectedRecords" OnActionComplete="ActionComplete"  TValue="XMLRename"></GridEvents>
+    <GridColumns>
+        <GridColumn Field=@nameof(XMLRename.ID) HeaderText="ID" IsPrimaryKey="true" Width="60"></GridColumn>
+        <GridColumn Field=@nameof(XMLRename.NameFromXML) HeaderText="Name From XML" Width="450" ></GridColumn>
+        <GridColumn Field=@nameof(XMLRename.BetterRename) HeaderText="Better rename" EditType="EditType.DefaultEdit" Width="auto"></GridColumn>
+        <GridColumn Field=@nameof(XMLRename.XMLType) HeaderText="EPG code" EditType="EditType.DefaultEdit" Width="auto"></GridColumn>
+    </GridColumns>
+</SfGrid>
+
+<style>
+
+	.e-rowcell {
+        font: 1.0rem "Helvetica", serif;
+		background: AliceBlue;
+	}
+
+    e-altrow{
+        background: blanchedalmond;
+    }
+
+    .e-grid .e-rowcell.e-selectionbackground {
+        font: 1.0rem "Helvetica", serif;
+        background-color: aquamarine;
+    }
+</style>

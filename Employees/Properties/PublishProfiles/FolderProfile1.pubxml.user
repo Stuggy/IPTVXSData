@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+https://go.microsoft.com/fwlink/?LinkID=208121.
+-->
+<Project>
+  <PropertyGroup>
+    <_PublishTargetUrl>G:\IPTV\BlazorTVDB\Employees\bin\Release\net7.0\publish\</_PublishTargetUrl>
+    <History>True|2023-07-21T13:20:19.7467590Z;True|2023-06-27T13:53:46.2837461+02:00;True|2023-06-27T13:52:26.0666169+02:00;</History>
+    <LastFailureDetails />
+  </PropertyGroup>
+</Project>

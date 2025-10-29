@@ -1,0 +1,167 @@
+﻿@using Microsoft.EntityFrameworkCore
+@using IPTV.data
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Layouts
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.Notifications
+@using Syncfusion.Blazor.Popups
+@using TooltipPosition = Syncfusion.Blazor.Popups.Position
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.ProgressBar
+
+@page "/XMLMatch"
+@inject IDbContextFactory<IptvDataContext> IptvContextFactory;
+<PageTitle>XML Sources</PageTitle>
+
+@if (JoinedXML is not null)
+{
+	<div class="p">
+		<div class="label-value">Active portal: @ActivePortal</div>
+		<div class="label-value">XML List count: @JoinedXML.Count</div>
+	</div>
+	<div class="divider" />
+
+	<div class="label-group">
+		<SfButton CssClass="e-primary" @onclick="ClearList">Clear all data</SfButton>
+		<SfButton CssClass="e-info" @onclick="SACheckALL">SA check all</SfButton>
+		<SfButton CssClass="e-info" @onclick="SAClearALL">SA clear all</SfButton>
+		<SfButton CssClass="e-success">UK check all</SfButton>
+		<SfButton CssClass="e-success">UK clear all</SfButton>
+		<SfButton CssClass="e-warning">US check all</SfButton>
+		<SfButton CssClass="e-warning">US clear all</SfButton>
+	</div>
+	<SfGrid DataSource="@JoinedXML" @ref="Grid" AllowSelection="true" AllowFiltering="true" RowHeight="20" Width="800" Toolbar="@(new List<string>() { "Add", "Edit", "Delete", "Cancel", "Update" })">
+		<GridEditSettings AllowAdding="true" AllowEditing="true" AllowDeleting="true"></GridEditSettings>
+		<GridSelectionSettings EnableToggle="true" Type="Syncfusion.Blazor.Grids.SelectionType.Multiple"></GridSelectionSettings>
+		<GridFilterSettings Mode="FilterBarMode.Immediate" ImmediateModeDelay=300></GridFilterSettings>
+		<GridColumns>
+			<GridColumn Field="channelID" HeaderText="XML ID" IsPrimaryKey="true" Width="30" FilterSettings="@(new FilterSettings{ Operator = Operator.Contains })"></GridColumn>
+			<GridColumn Field="ChannelName" HeaderText="Name" Width="60" FilterSettings="@(new FilterSettings{ Operator = Operator.Contains })"></GridColumn>
+			<GridColumn Field="Source" HeaderText="Source" Width="60" FilterSettings="@(new FilterSettings{ Operator = Operator.Contains })"></GridColumn>
+			<GridColumn Field=@nameof(XMLClass.TimeZoneSA) DisplayAsCheckBox="true" Type="Syncfusion.Blazor.Grids.ColumnType.Boolean" Width="40">
+				<HeaderTemplate>
+					SA
+					<SfCheckBox @bind-Checked="SAischecked" @onchange="onChangeSA">@SAischecked</SfCheckBox>
+				</HeaderTemplate>
+			</GridColumn>
+			<GridColumn Field=@nameof(XMLClass.TimeZoneUK) DisplayAsCheckBox="true" Type="Syncfusion.Blazor.Grids.ColumnType.Boolean" Width="40">
+				<HeaderTemplate>
+					UK
+					<SfCheckBox @bind-Checked="UKischecked" @onchange="onChangeUK"></SfCheckBox>
+				</HeaderTemplate>
+			</GridColumn>
+			<GridColumn Field=@nameof(XMLClass.TimeZoneUS) DisplayAsCheckBox="true" Type="Syncfusion.Blazor.Grids.ColumnType.Boolean" Width="40" >
+				<HeaderTemplate>
+					US
+					<SfCheckBox @bind-Checked="USischecked" @onchange="onChangeUS">@USischecked</SfCheckBox>
+				</HeaderTemplate>
+			</GridColumn>
+		</GridColumns>
+		<GridEvents RowSelected="OnRowSelected " OnActionComplete="ActionComplete" DataBound="OnDataBound" TValue="XMLClass"></GridEvents>
+	</SfGrid>
+	<SfToast ID="toast_default" @ref="ToastObj" Title="XML Channels" Timeout="5000" Icon=".e-toast-message">
+		<ToastPosition X="@ToastPosition"></ToastPosition>
+	</SfToast>
+}
+
+<style>
+	.label-value {
+		display: inline-block;
+		padding-left: 40px;
+		padding-right: 40px;
+		padding-bottom: 10px;
+		padding-top: 10px;
+	}
+
+	.label-group {
+		display: inline-block;
+		background: antiquewhite;
+		padding-left: 40px;
+		padding-right: 40px;
+		padding-bottom: 10px;
+		padding-top: 10px;
+	}
+
+	.p {
+		font-family: Tahoma;
+		font-size: 14px;
+	}
+
+</style>
+
+<!--
+ .e-grid {
+		 margin: 180px;  // this nicely indents the grid
+	 }
+
+
+	 flexing items on a row:
+
+	 <ul class="flex-container space-between">
+		 </ul>
+
+
+	.flex-container {
+		padding: 0;
+		margin: 0;
+		list-style: none;
+		display: flex;
+	}
+
+	.flex-start {
+		justify-content: flex-start;
+	}
+
+	.flex-end {
+		justify-content: flex-end;
+	}
+
+		.flex-end li {
+			background: gold;
+		}
+
+	.center {
+		justify-content: center;
+	}
+
+		.center li {
+			background: deepskyblue;
+		}
+
+	.space-between {
+		justify-content: space-between;
+	}
+
+		.space-between li {
+			background: lightgreen;
+		}
+
+	.space-around {
+		justify-content: space-around;
+	}
+
+		.space-around li {
+			background: hotpink;
+		}
+
+	.space-evenly {
+		justify-content: space-evenly;
+	}
+
+		.space-evenly li {
+			background: #bada55;
+		}
+
+	.flex-item {
+		background: tomato;
+		padding: 5px;
+		width: 60px;
+		height: 50px;
+		margin: 5px;
+		line-height: 50px;
+		color: white;
+		font-weight: bold;
+		font-size: 2em;
+		text-align: center;
+	}
+-->
